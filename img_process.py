@@ -10,10 +10,10 @@ img  = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 im_bw = cv2.threshold(im_bw, thresh, 255, cv2.THRESH_BINARY)[1]
 rows, cols = im_bw.shape[:2]  # dimensions of resized m-cap
 img = []
-for i in range(0,rows):
-    for j in range(0,cols):
-        if im_bw[i][j] == 255:
-            img.append([i*0.01,j*0.01,0])
+for i in range(0,rows) :
+    for j in range(0,cols) :
+        if im_bw[i][j] < 255 and i%6 == 0 and j%6 == 0:
+            img.append([j*0.002,-i*0.002,1])
 
 if not __openravepy_build_doc__:
     from openravepy import *
@@ -54,7 +54,8 @@ if __name__ == "__main__":
 
     angle = 0.0
     handles = []
-    color = [0,0,1]
-    handles.append(env.plot3(points=img),pointsize=1.0, colors=color)
+    color = [0,0,0]
+    for point in img:
+        handles.append(env.plot3(points=point,pointsize=2.0, colors=color))
 
     raw_input("Press enter to exit...")
