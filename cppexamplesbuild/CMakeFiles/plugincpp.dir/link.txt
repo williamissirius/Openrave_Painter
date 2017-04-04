@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC   -L/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -shared -Wl,-soname,libplugincpp.so -o libplugincpp.so CMakeFiles/plugincpp.dir/plugincpp.cpp.o  -L/usr/local/lib -lopenrave0.9 -Wl,-rpath,/usr/local/lib: 
