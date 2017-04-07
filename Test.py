@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
 	env.Reset()
 	# load a scene from ProjectRoom environment XML file
-	env.Load('data/pr2test2.env.xml')
+	env.Load('playground.env.xml')
 	time.sleep(0.1)
 
 	# 1) get the 1st robot that is inside the loaded scene
@@ -43,7 +43,18 @@ if __name__ == "__main__":
 	print  robot
 	
 	# tuck in the PR2's arms for driving
-	#tuckarms(env,robot);
+	print "robot links"
+	print robot.GetLinks()[0]
+	time.sleep(0.1)
+	with env:
+		for link in robot.GetLinks():
+			link.SetStatic(True)
+			time.sleep(0.1)
+	tuckarms(env,robot);
+
+
+
+
 
 	#drawing_joint_names = ['r_shoulder_pan_joint','r_shoulder_lift_joint', 'r_upper_arm_roll_joint','r_elbow_flex_joint'] #, 'r_forearm_roll_joint', 'r_wrist_flex_joint', 'r_wrist_roll_joint'
 	drawing_joint_names = ['r_shoulder_pan_joint','r_shoulder_lift_joint', 'r_elbow_flex_joint'] 
@@ -103,6 +114,8 @@ if __name__ == "__main__":
 	point = [T[0,3], T[1,3], T[2,3]]
 	print "Goal is " , [-2.6949156636956717, -1.5879999999999999, 1.2827045138538078]
 	print point
+
+
 
 	#### YOUR CODE HERE ####
 
