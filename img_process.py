@@ -12,8 +12,8 @@ rows, cols = im_bw.shape[:2]  # dimensions of resized m-cap
 img = []
 for i in range(0,rows) :
 	for j in range(0,cols) :
-		if im_bw[i][j] < 255 and i%6 == 0 and j%6 == 0:
-			img.append([j*0.002,-i*0.002,1])
+		if im_bw[i][j] < 255 and i%10 == 0 and j%10 == 0:
+			img.append([-0.2, j*0.001 - 0.1,-i*0.001+1])
 
 if not __openravepy_build_doc__:
 	from openravepy import *
@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
 	env.Reset()
 	# load a scene from ProjectRoom environment XML file
-	env.Load('robots/puma.robot.xml')
+	env.Load('hw3.env.xml')
 	time.sleep(0.1)
 
 	# 1) get the 1st robot that is inside the loaded scene
@@ -52,34 +52,41 @@ if __name__ == "__main__":
 	# robot.SetActiveDOFs([robot.GetJoint(name).GetDOFIndex() for name in jointnames])
 
 	print  robot
+	tuckarms(env, robot)
+
+	robot.SetActiveManipulator(robot.GetManipulator('rightarm_torso'))
+
+	T = robot.GetManipulator('rightarm_torso').GetTransform()
+	point = [T[0,3], T[1,3], T[2,3]]
+	print T
+	print point
 
 
-	angle = 0.0
-	handles = []
-	color = [0,0,0]
-
-	manip = robot.GetActiveManipulator()
-	print manip
-	ikmodel = databases.inversekinematics.InverseKinematicsModel(robot,iktype=IkParameterization.Type.Transform6D)
-	print 'load ikmodel'
-	#print ikmodel.autogenerate()
+	with env:
+		ikmodel = openravepy.databases.inversekinematics.InverseKinematicsModel(robot,iktype=IkParameterization.Type.Translation3D)
+		print ikmodel
 		
+		if not ikmodel.load():
+			ikmodel.autogenerate()
 
+	#h = env.plot3(Tee[0:3,3],10) # plot one point
+	#raw_input('press any key')
+	handles = [];
+	joint_names = ['torso_lift_joint','r_shoulder_pan_joint','r_shoulder_lift_joint', 'r_upper_arm_roll_joint','r_elbow_flex_joint', 'r_forearm_roll_joint', 'r_wrist_flex_joint']
+	robot.SetActiveDOFs([robot.GetJoint(name).GetDOFIndex() for name in joint_names]);
+	raw_input("Press enter to continue...")
 
-	Tee = manip.GetEndEffectorTransform()
-	print Tee
-	ikparam = IkParameterization(Tee[0:3,3],ikmodel.iktype) # build up the translation3d ik query
-	sols = manip.FindIKSolutions(ikparam, IkFilterOptions.CheckEnvCollisions) 
-
-	h = env.plot3(Tee[0:3,3],10) # plot one point
-
-	for sol in sols[::10]: # go through every 10th solution
-		robot.SetDOFValues(sol,manip.GetArmIndices()) # set the current solution
-		env.UpdatePublishedBodies() # allow viewer to update new robot
-	raw_input('press any key')
-
-	raw_input("Press enter to exit...")
 	for point in img:
+		color = [0,0,0]
 		handles.append(env.plot3(points=point,pointsize=2.0, colors=color))
+		solutions = ikmodel.manip.FindIKSolution(IkParameterization(point, IkParameterization.Type.Translation3D),IkFilterOptions.CheckEnvCollisions)
+		robot.SetActiveDOFValues(solutions)
+		robot.GetController().SetDesired(robot.GetDOFValues());
+		T = robot.GetManipulator('rightarm_torso').GetTransform()
+		print "Endeffector After IK"
+		point = [T[0,3], T[1,3], T[2,3]]
+		print point
+		time.sleep(0.02)
+
 
 	raw_input("Press enter to exit...")

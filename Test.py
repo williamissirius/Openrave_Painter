@@ -35,21 +35,41 @@ if __name__ == "__main__":
 	env.Reset()
 	# load a scene from ProjectRoom environment XML file
 	env.Load('playground.env.xml')
+
+	robot = env.GetRobots()[0]
+	print  robot
+	robot.SetActiveManipulator(robot.GetManipulator('rightarm_torso'))
+	with env:
+		ikmodel = openravepy.databases.inversekinematics.InverseKinematicsModel(robot,iktype=IkParameterization.Type.Translation3D)
+		print ikmodel
+		
+		if not ikmodel.load():
+			ikmodel.autogenerate()
+
+
+	physics = RaveCreatePhysicsEngine(env,'ode')
+	env.SetPhysicsEngine(physics)
 	time.sleep(0.1)
+
+	with env:
+		env.GetPhysicsEngine().SetGravity([0,0, -9.8])
+		env.StopSimulation()
+		env.StartSimulation(timestep=1e-3)
+		starttime = time.time()
+
 
 	# 1) get the 1st robot that is inside the loaded scene
 	# 2) assign it to the variable named 'robot'
-	robot = env.GetRobots()[0]
-	print  robot
+	
 	
 	# tuck in the PR2's arms for driving
 	print "robot links"
 	print robot.GetLinks()[0]
 	time.sleep(0.1)
-	with env:
-		for link in robot.GetLinks():
-			link.SetStatic(True)
-			time.sleep(0.1)
+	# with env:
+	# 	for link in robot.GetLinks():
+	# 		link.SetStatic(True)
+	tuckarms(env,robot);
 	tuckarms(env,robot);
 
 
@@ -65,7 +85,7 @@ if __name__ == "__main__":
 	limit = robot.GetActiveDOFLimits();
 	print limit;
 	with env:
-		config_joint = [-0.0,0.0, -1.0]
+		config_joint = [-1.0,0.0, -1.0]
 		robot.SetActiveDOFValues(config_joint)
 		robot.GetController().SetDesired(robot.GetDOFValues());
 	waitrobot(robot)
@@ -79,20 +99,18 @@ if __name__ == "__main__":
 	print config_joint
 
 	print robot.GetActiveDOFLimits();
-	robot.SetActiveManipulator(robot.GetManipulator('rightarm_torso'))
+	
+
+	tuckarms(env,robot);
 
 	raw_input("Press enter to exit...")
 
 	#ikmodel = openravepy.databases.inversekinematics.InverseKinematicsModel(robot,iktype='translationdirection5d')
-	ikmodel = openravepy.databases.inversekinematics.InverseKinematicsModel(robot,iktype=IkParameterization.Type.Translation3D)
-	print ikmodel
-	goal_endeffector_position = [-2.6949156636956717, -1.5879999999999999, 1.2827045138538078];
-	if not ikmodel.load():
-		ikmodel.autogenerate()
-
-
 	with env:
 
+		
+	
+		goal_endeffector_position = [-0.6, 1.4, 0.52];
 		solutions = ikmodel.manip.FindIKSolution(IkParameterization(goal_endeffector_position, IkParameterization.Type.Translation3D),IkFilterOptions.CheckEnvCollisions)
 	
 		print "solution"
